@@ -5,4 +5,6 @@ edition = "2024"
 
 [dependencies]
 comrak = "0.50"
+toml = "1.1.2"
+serde = { version = "1", features = ["derive"]}
 
