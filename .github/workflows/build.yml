@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Checkout
+          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+          with:
+            persist-credentials: false
+
+        - uses: NixOS/nix-installer-action@6b8548fe06acfb0155a50ab5d561accb215764cc # main
+          with:
+            extra-conf: |
+              experimental-features = nix-command flakes
+ 
+        - name: Build
+          run: |
+            nix develop --command cargo run
+
+        - name: Deploy
+          uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+          with:
+            apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+            accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+            command: pages deploy build --project-name=kritzelkrak
+            githubToken: ${{ secrets.GITHUB_TOKEN }}
