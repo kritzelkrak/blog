@@ -22,17 +22,22 @@ fn parse(raw: &str) -> (FrontMatter, String) {
 }
 
 fn main() {
-    // TODO: For each post in site/posts/, create a page
     let template = fs::read_to_string("templates/post.html").unwrap();
-    let post = fs::read_to_string("site/first.md").unwrap();
-
-    let (fm, content) = parse(&post);
-    let html = markdown_to_html(&content, &Options::default());
-    
-    let page = template
-        .replace("{{title}}", &fm.title)
-        .replace("{{content}}", &html);
 
     fs::create_dir_all("build").unwrap();
-    fs::write("build/index.html", page).unwrap();
+
+    // read all the posts
+    for file in fs::read_dir("site").unwrap() {
+        let path = file.unwrap().path();
+        let post = fs::read_to_string(&path).unwrap();
+
+        let (fm, content) = parse(&post);
+        let html = markdown_to_html(&content, &Options::default());
+        let page = template
+            .replace("{{title}}", &fm.title)
+            .replace("{{content}}", &html);
+
+        let new_path = format!("build/{}.html", path.file_stem().unwrap().to_string_lossy());
+        fs::write(new_path, page).unwrap();
+   }
 }
